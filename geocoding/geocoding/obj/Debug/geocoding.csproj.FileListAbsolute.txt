@@ -1,0 +1,9 @@
+C:\Users\jungli\Desktop\geocoding\geocoding\bin\Debug\geocoding.exe.config
+C:\Users\jungli\Desktop\geocoding\geocoding\bin\Debug\geocoding.exe
+C:\Users\jungli\Desktop\geocoding\geocoding\bin\Debug\geocoding.pdb
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.csprojResolveAssemblyReference.cache
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.Form1.resources
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.Properties.Resources.resources
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.csproj.GenerateResource.Cache
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.exe
+C:\Users\jungli\Desktop\geocoding\geocoding\obj\Debug\geocoding.pdb

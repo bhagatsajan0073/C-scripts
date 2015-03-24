@@ -1,0 +1,23 @@
+
+// implimenting the google map api in your c# code is really simple 
+
+// address you want to geocode may be string array or the text from some file 
+var address = "123 something st, somewhere";
+
+// request to google map api it can either be of xml or json type  depending on the type of response you requires
+
+var requestUri = string.Format("http://maps.googleapis.com/maps/api/geocode/xml?address={0}&sensor=false", Uri.EscapeDataString(address));;
+var request = WebRequest.Create(requestUri);
+
+// getting the response from the webrequest
+
+var response = request.GetResponse();
+var xdoc = XDocument.Load(response.GetResponseStream());
+
+// parsing the xml to getting the result of it
+// Element is the function for accessing the tags inside the xml
+
+var result = xdoc.Element("GeocodeResponse").Element("result");
+var locationElement = result.Element("geometry").Element("location");
+var lat = locationElement.Element("lat");
+var lng = locationElement.Element("lng");

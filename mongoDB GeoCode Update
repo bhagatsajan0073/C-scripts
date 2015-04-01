@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Net;
+using System.Xml.Linq;
+using System.IO;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
+using Newtonsoft.Json;
+
+
+namespace geocoding
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        public class Entity
+        {
+            public string _id { get; set; }
+            public string name { get; set; }
+
+            public string address { get; set; }
+
+            //public string city { get; set; }
+
+            public string lat { get; set; }
+
+            public string lng { get; set; }
+        }
+
+        public class objarray
+        {
+           public Entity result { get; set; }
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var connectionString = "mongodb://192.168.1.200";
+            var client = new MongoClient(connectionString);
+            var server = client.GetServer();
+            var database = server.GetDatabase("hereiam");
+            // var collection = database.GetCollection<Entity>("rndcollection");
+
+            var collection = database.GetCollection("magazinePrint");
+           // var query = Query.NE("_id","" );
+            var query = Query.EQ("lat", "no result");
+            var entity = collection.Find(query);
+
+
+
+
+            //  var query = Query<Entity>.EQ(f => f.Id, "yashprints");
+            //  var  entity = collection.FindOne(query).;
+            var jsonobj = entity.ToJson();
+
+//            MessageBox.Show(jsonobj);
+
+            var output = JsonConvert.DeserializeObject<List<Entity>>(entity.ToJson());
+            
+
+            //MessageBox.Show(output[0);
+            //var output = JsonConvert.DeserializeObject<Entity>(jsonobj);
+
+            string lat, lng;
+            foreach(var res in output)
+            {
+                //MessageBox.Show(res.address);
+                
+                //getgeocode(res.address+" , "+res.city, out lat, out lng);
+                getgeocode(res.address, out lat, out lng);
+                query = Query.EQ("_id", res._id);
+
+                var update = Update<Entity>.Set(f => f.lat, lat).Set(f => f.lng, lng);
+                collection.Update(query, update);
+
+                System.Threading.Thread.Sleep(2500);
+            }
+            this.Close();
+
+          //  getgeocode(output.address, out lat, out lng);
+          //  MessageBox.Show(lat+"\t"+ lng);
+
+            //   MessageBox.Show(output.address);
+        }
+
+        public void getgeocode(string address, out string lat, out string lng)
+        {
+            var requestUri = string.Format("http://maps.googleapis.com/maps/api/geocode/xml?address={0}&sensor=false", Uri.EscapeDataString(address));
+            var csv = new StringBuilder();
+            var request = WebRequest.Create(requestUri);
+            var response = request.GetResponse();
+            var xdoc = XDocument.Load(response.GetResponseStream());
+
+            var status = xdoc.Element("GeocodeResponse").Element("status").Value;
+            if (status == "ZERO_RESULTS")
+            {
+                lat = "no result";
+                lng = "no result";
+                return;
+            }
+            else
+            {
+
+                var result = xdoc.Element("GeocodeResponse").Element("result");
+             //   var formatted_address = result.Element("formatted_address").Value;
+                var locationElement = result.Element("geometry").Element("location");
+                lat = locationElement.Element("lat").Value;
+                lng = locationElement.Element("lng").Value;
+            }
+
+        }
+    }
+      
+    }
+

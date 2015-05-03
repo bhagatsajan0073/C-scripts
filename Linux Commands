@@ -1,0 +1,25 @@
+// System Shut Down
+
+shutdown -h now u   // shutdown the system now
+shutdown -h +15    //  shutdown after 15 mins
+
+// restarting 
+
+shutdown -r now   //restart right now
+shutdown -r +15   // restart after 15 mins
+
+//ip configuration
+
+ifconfig -a   // View all of the IP configuration
+ifconfig eth0 // View the Configuration for eth0
+
+
+
+
+
+
+
+
+
+
+

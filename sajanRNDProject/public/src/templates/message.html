@@ -1,4 +1,12 @@
 <div class="chat-message {{extra_classes}}">
     <span class="chat-message-{{sender}}">{{time}} {{username}}:&nbsp;</span>
-    <span class="chat-message-content">{{message}}</span>
+    <span class="chat-message-content">{{message}}</span><br>
+    <image class="img_attachment" src="{{at=='image'?au:''}}" style="display:{{at=='image'?'block':'none'}}">
+    <!-- <audio class="aud_attachment" controls style="display:{{at=='audio'?'block':'none'}}">
+    	<source type='audio/mpeg' src="{{at=='audio'?au:''}}">
+    </audio> -->
+    <!--for testing the audio control follow the bellow html-->
+    <audio class="aud_attachment" controls style="display:{{at=='audio'?'block':'none'}}">
+    	<source type='audio/mpeg' src="sounds/msg_received.mp3">
+    </audio>
 </div>

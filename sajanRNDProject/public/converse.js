@@ -442,6 +442,7 @@
         // Module-level functions
         // ----------------------
 
+        
         this.sendCSI = function (stat) {
             /* Send out a Chat Status Notification (XEP-0352) */
             if (converse.features[Strophe.NS.CSI] || true) {
@@ -598,6 +599,21 @@
                 }
             );
         };
+
+        //custom image type and image 
+        // this.init_img=function(){
+        //      converse.getVCard(
+        //                     null, // No 'to' attr when getting one's own vCard
+        //                     function (iq, jid, fullname, image, image_type, url) {
+        //                         //console.log(image);
+        //                         this.image_curr=image;
+        //                         this.image_type=image_type;
+        //                         return image;
+        //                     }.bind(this)
+        //                 );
+
+        //  }
+        
 
         this.reconnect = function (condition) {
             converse.log('Attempting to reconnect in 5 seconds');
@@ -876,6 +892,17 @@
             // When reconnecting, there might be some open chat boxes. We don't
             // know whether these boxes are of the same account or not, so we
             // close them now.
+            // console.log(this)
+            converse.getVCard(
+                            null, // No 'to' attr when getting one's own vCard
+                            function (iq, jid, fullname, image, image_type, url) {
+                                //console.log(image);
+                                this.image_curr=image;
+                                this.image_type=image_type;
+                               }.bind(this)
+                        );
+            
+            console.log(converse);
             this.chatboxviews.closeAllChatBoxes();
             this.jid = this.connection.jid;
             this.bare_jid = Strophe.getBareJidFromJid(this.connection.jid);
@@ -1202,7 +1229,9 @@
                 'click .end-otr': 'endOTR',
                 'click .auth-otr': 'authOTR',
                 'click .toggle-call': 'toggleCall',
-                'mousedown .dragresize-tm': 'onDragResizeStart'
+                'mousedown .dragresize-tm': 'onDragResizeStart',
+                'click .upld_img': 'uploadImage',
+                'change #attachment_upload': 'submitImage',
             },
 
             initialize: function () {
@@ -1231,7 +1260,68 @@
                     this.model.initiateOTR();
                 }
             },
+            uploadImage: function() {
+                        //  console.log($(this));
+                        var __self = this.$el.find(".upld_img");
+                        //console.log(__self);
+                        __self.parents(".upt_attach").find("input[type='file']").click();
+                    },
+            // popUP:function(e){
+            //     var __self=$(e.currentTarget);
+            //     imageUrl=__self.find('img').src;
+            //     //console.log(__self.find('img'));
+            //     __self.find('img').bPopup({
+            //     content:'image',
+            //     loadUrl:imageUrl,
+            //     });
+            // },
+            submitImage: function() {
+                
+                var _validFileExtensions = [".jpg", ".jpeg", ".bmp", ".gif", ".png"];
+                var _audioFormat = [".mp3", "3ga", ".WAV", ".AIF", ".MP3", ".MID", ".3gp", ".ogg"];
 
+                var fileType;
+                var __this = this;
+                var __self = this.$el.find(".upt_attach");
+                var attachFileName = this.$el.find('#attachment_upload')[0].value;
+                console.log(attachFileName);
+                for (var j = 0; j < _validFileExtensions.length; j++) {
+                    var sCurExtension = _validFileExtensions[j];
+                    if (attachFileName.substr(attachFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() == sCurExtension.toLowerCase()) {
+                        fileType = 'image';
+                        break;
+                    }
+                }
+
+                for (var j = 0; j < _audioFormat.length; j++) {
+                    var sCurExtension = _audioFormat[j];
+                    if (attachFileName.substr(attachFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() == sCurExtension.toLowerCase()) {
+                        fileType = 'audio';
+                        break;
+                    }
+                }
+                var finalMessage;
+                // console.log(fileType);
+                //console.log($(".upt_attach"));
+                __self.ajaxSubmit({
+                    type: 'post',
+                    //dataType: 'image/jpeg',
+                    // data: __self.serialize(),
+                    success: function(data) {
+                        //console.log(1321323213);
+                        console.log(data.result);
+                        data.result.replace("")
+                        finalMessage = "$dwnd$__" + fileType + "__" + data.result;
+                        console.log(finalMessage);
+                        __this.model.get("chatroom") ? __this.sendChatRoomMessage(finalMessage) : __this.sendMessage(finalMessage), converse.emit("messageSend", finalMessage);
+                        //this.model.get("chatroom") ? this.sendChatRoomMessage("data") : this.sendMessage("data"), m.emit("messageSend", "data");                     
+                    }
+
+                });
+
+                //  console.log(finalMessage);
+                //                      
+            },
             insertIntoPage: function () {
                 this.$el.insertAfter(converse.chatboxviews.get("controlbox").$el);
             },
@@ -1279,6 +1369,22 @@
             },
 
             showMessage: function (msg_dict) {
+                var au, at;
+                
+                if (msg_dict.message.substr(0, 6) == '$dwnd$') {
+                    var arr = msg_dict.message.split("__");
+                    au = arr[2];
+                    at = arr[1];
+                    if (au.substr(0, 11) == 'https://him') {
+                        au = au;
+                    } else {
+                        au = "https://him-snaps.s3.amazonaws.com/" + au;
+                    }
+
+                    msg_dict.message = "";
+                    // console.log(au);
+                }
+
                 var $content = this.$el.find('.chat-content'),
                     msg_time = moment(msg_dict.time) || moment,
                     text = msg_dict.message,
@@ -1307,7 +1413,9 @@
                     'time': msg_time.format('hh:mm'),
                     'username': username,
                     'message': '',
-                    'extra_classes': extra_classes
+                    'extra_classes': extra_classes,
+                    au: au,
+                    at: at
                 });
                 $content.append($(message).children('.chat-message-content').first().text(text).addHyperlinks().addEmoticons().parent());
                 this.scrollDown();
@@ -1847,7 +1955,7 @@
 
         this.ContactsPanel = Backbone.View.extend({
             tagName: 'div',
-            className: 'controlbox-pane',
+            className: 'controlbox-pane col-md-4',
             id: 'users',
             events: {
                 'click a.toggle-xmpp-contact-form': 'toggleContactForm',
@@ -4841,6 +4949,7 @@
                         converse.getVCard(
                             null, // No 'to' attr when getting one's own vCard
                             function (iq, jid, fullname, image, image_type, url) {
+                                //console.log(image);
                                 this.save({'fullname': fullname});
                             }.bind(this)
                         );
